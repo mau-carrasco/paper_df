@@ -1,0 +1,58 @@
+---
+title: "Conceptos y cifras de desaparición forzada"
+author: "Mauricio Carrasco & Cath Collins"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  pdf_document: default
+bibliography: bibliografia.bib
+csl: apa.csl
+link-citations: yes
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+flextable::set_flextable_defaults(font.size = 10, padding = 3, theme_fun = "theme_zebra", font.family = "garamond")
+
+# Carga de paquetes
+library(tidyverse)
+library(readxl)
+library(flextable)
+
+# Datos
+sitios <- readRDS("C:/Users/mauricio.carrasco/Desktop/PNB/lugares/resultados/lugares.rds")
+base_condenas <- read_excel("C:/Users/mauricio.carrasco/Desktop/PNB/web_scraping_ddhh/resultados/base_condenas.xlsx")
+victimas <- readRDS("C:/Users/mauricio.carrasco/Desktop/PNB/victimas/resultados/victimas.rds")
+datos_solicitud <- read_excel("C:/Users/mauricio.carrasco/OneDrive - Ministerio de Justicia/Datos PNB/datos_judiciales/datos_solicitud.xlsx")
+```
+
+## Categorías y tipos de víctimas
+
+Según @ONU2013, @Collins2021, @Collins2017, @INDH2020 e @INDH2021 
+
+```{r tabla 1 - víctimas}
+victimas %>%
+  mutate(
+    tipo_caso = case_when(tipo_caso == "DESAPARECIDO/A" ~ 3,
+                          tipo_caso == "ASESINADO/A SIN ENTREGA DE CUERPO" ~ 2,
+                          TRUE ~ 1),
+    tipo_caso = factor(tipo_caso, labels = c("Muerto/a", "Desaparecido/a con información de muerte", "Desaparecido/a"))
+    ) %>%
+  group_by("Tipo de víctima" = tipo_caso) %>%
+  count(calificacion) %>%
+  pivot_wider(names_from = calificacion,
+              values_from = n) %>%
+  janitor::adorn_totals(where = c("row", "col")) %>%
+  flextable() %>%
+  add_header_row(
+    colwidths = c(1, 2, 1),
+  values = c("", "Calificación", "")) %>%
+  align(i = 1, part = "header", align = "center") %>%
+  autofit() %>%
+  set_caption(caption = "Calificación y tipo de víctima") %>%
+  add_footer_lines("Fuente: Elaboración propia en base a los informes de la CNVR, la CNRR y la CPACDDEPVPPT")
+
+```
+
